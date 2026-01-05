@@ -2,26 +2,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListaIngredienti {
-    public List<Ingredienti> ingredients;
-    public int totalCalories;
-    public int totalProtein;
-    public int totalFat;
-    public int totalCarbs;
-    public int totalFiber;
-    public int totalSugar;
+    public List<Ingredienti> ingredienti;
+    public int calorieTotali;
+    public int proteineTotali;
+    public int grassiTotali;
+    public int carboidratiTotali;
+    public int fibreTotali;
+    public int zuccheroTotale;
 
     public ListaIngredienti() {
-        this.ingredients = new ArrayList<>();
+        this.ingredienti = new ArrayList<>();
     }
 
     public void addIngredient(Ingredienti ing) {
-        ingredients.add(ing);
-        totalCalories += ing.calories;
-        totalProtein += ing.protein;
-        totalFat += ing.fat;
-        totalCarbs += ing.carbs;
-        totalFiber += ing.fiber;
-        totalSugar += ing.sugar;
+        ingredienti.add(ing);
+        calorieTotali += ing.calorie;
+        proteineTotali += ing.proteine;
+        grassiTotali += ing.grassi;
+        carboidratiTotali += ing.carboidrati;
+        fibreTotali += ing.fibre;
+        zuccheroTotale += ing.zucchero;
     }
 }
 

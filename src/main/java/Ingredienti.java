@@ -1,24 +1,24 @@
 public class Ingredienti {
-    public String name;
-    public int weight; // in grammi
-    public int calories;
-    public int protein;
-    public int fat;
-    public int carbs;
-    public int fiber;
-    public int sugar;
+    public String nome;
+    public int peso; // in grammi
+    public int calorie;
+    public int proteine;
+    public int grassi;
+    public int carboidrati;
+    public int fibre;
+    public int zucchero;
 
     // Costruttore
-    public Ingredienti(String name, int weight, int calories, int protein,
-                       int fat, int carbs, int fiber, int sugar) {
-        this.name = name;
-        this.weight = weight;
-        this.calories = calories;
-        this.protein = protein;
-        this.fat = fat;
-        this.carbs = carbs;
-        this.fiber = fiber;
-        this.sugar = sugar;
+    public Ingredienti(String nome, int peso, int calorie, int proteine,
+                       int grassi, int carboidrati, int fibre, int zucchero) {
+        this.nome = nome;
+        this.peso = peso;
+        this.calorie = calorie;
+        this.proteine = proteine;
+        this.grassi = grassi;
+        this.carboidrati = carboidrati;
+        this.fibre = fibre;
+        this.zucchero = zucchero;
     }
 }
 

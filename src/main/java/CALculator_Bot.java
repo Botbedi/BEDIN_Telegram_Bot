@@ -24,7 +24,7 @@ public class CALculator_Bot implements LongPollingSingleThreadUpdateConsumer {
             if (update.hasMessage() && update.getMessage().hasText()) {
 
                 String text = update.getMessage().getText();
-
+                /*
 
                 // Split ingredienti
                 String[] stringSplit = text.split(",");
@@ -96,18 +96,59 @@ public class CALculator_Bot implements LongPollingSingleThreadUpdateConsumer {
 
                         recipe.addIngredient(ing);
                     }
-                }
-                System.out.println("Calorie totali: " + recipe.totalCalories);
-                System.out.println("Proteine totali: " + recipe.totalProtein);
-                System.out.println("Grassi totali: " + recipe.totalFat);
+                }*/
+                ListaIngredienti lista = new ListaIngredienti();
+                Ingredienti riso = new Ingredienti(
+                        "Riso",
+                        195,    // peso in grammi
+                        702,    // calorie
+                        13,     // proteine
+                        1,      // grassi
+                        155,    // carboidrati
+                        0,      // fibre
+                        0       // zucchero
+                );
+
+
+                Ingredienti uova = new Ingredienti(
+                        "Uova",
+                        86,
+                        123,
+                        11,
+                        8,
+                        1,
+                        0,
+                        0
+                );
+
+
+                Ingredienti pettoDiPollo = new Ingredienti(
+                        "Petto di pollo",
+                        100,    // peso in grammi
+                        120,    // calorie
+                        22,     // proteine
+                        2,      // grassi
+                        0,      // carboidrati
+                        0,      // fibre
+                        0       // zucchero
+                );
+
+
+                lista.addIngredient(riso);
+                lista.addIngredient(uova);
+                lista.addIngredient(pettoDiPollo);
+                System.out.println("Calorie totali: " + lista.calorieTotali);
+                System.out.println("Carboidrati totali: " + lista.carboidratiTotali);
+                System.out.println("Proteine totali: " + lista.proteineTotali);
+                System.out.println("Grassi totali: " + lista.grassiTotali);
                 System.out.println("Ingredienti:");
-                for (Ingredienti i : recipe.ingredients) {
-                    System.out.println("- " + i.name + ": " + i.calories + " kcal");
+                for (Ingredienti i : lista.ingredienti) {
+                    System.out.println("- " + i.nome + ": " + i.calorie + " kcal");
                 }
-                String responseText = "Calorie totali: " + (int)recipe.totalCalories + " kcal\n" +
-                        "Proteine totali: " + (int)recipe.totalProtein + " g\n" +
-                        "Grassi totali: " + (int)recipe.totalFat + " g\n" +
-                        "Carboidrati totali: " + (int)recipe.totalCarbs + " g";
+                String responseText = "Calorie totali: " + lista.calorieTotali + " kcal\n" +
+                        "Proteine totali: " + lista.proteineTotali + " g\n" +
+                        "Grassi totali: " + lista.grassiTotali + " g\n" +
+                        "Carboidrati totali: " + lista.carboidratiTotali + " g";
 
                 SendMessage message = new SendMessage(update.getMessage().getChatId().toString(), responseText);
 
@@ -116,11 +157,40 @@ public class CALculator_Bot implements LongPollingSingleThreadUpdateConsumer {
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-
+                salvaDB(text,update);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+    public void salvaDB(String text, Update update) {
+        if (text.startsWith("/macro")) {
+            String[] p = text.split(" ");
 
+            PreferenzeUtente pref = new PreferenzeUtente(
+                    update.getMessage().getChatId(),
+                    Integer.parseInt(p[1]),
+                    Integer.parseInt(p[2]),
+                    Integer.parseInt(p[3]),
+                    Integer.parseInt(p[4])
+            );
+
+            try {
+                Database.inserisciPreferenze(pref);
+            } catch (Exception e) {
+                System.err.println("Impossibile inserire le preferenze");
+            }
+            System.out.println("Preferenze salvate ✅");
+            try {
+                PreferenzeUtente pref2 = Database.leggi(update.getMessage().getChatId());
+                System.out.println(pref2.chatId);
+                System.out.println(pref2.calorie);
+                System.out.println(pref2.carboidrati);
+                System.out.println(pref2.proteine);
+                System.out.println(pref2.grassi);
+            } catch (Exception e) {
+                System.err.println("Impossibile leggere le preferenze");
+            }
+        }
+    }
 }

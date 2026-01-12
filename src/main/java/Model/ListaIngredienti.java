@@ -1,3 +1,5 @@
+package Model;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,8 +9,6 @@ public class ListaIngredienti {
     public int proteineTotali;
     public int grassiTotali;
     public int carboidratiTotali;
-    public int fibreTotali;
-    public int zuccheroTotale;
 
     public ListaIngredienti() {
         this.ingredienti = new ArrayList<>();
@@ -20,8 +20,14 @@ public class ListaIngredienti {
         proteineTotali += ing.proteine;
         grassiTotali += ing.grassi;
         carboidratiTotali += ing.carboidrati;
-        fibreTotali += ing.fibre;
-        zuccheroTotale += ing.zucchero;
+    }
+    @Override
+    public String toString() {
+        return "Valori nutrizionali totali " +
+                "\nCalorie: " + calorieTotali +
+                "\nCarboidrati: " + carboidratiTotali +
+                "\nProteine: " + proteineTotali +
+                "\nGrassi: " + grassiTotali ;
     }
 }
 

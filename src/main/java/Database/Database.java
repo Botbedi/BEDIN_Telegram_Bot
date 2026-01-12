@@ -194,29 +194,29 @@ public class Database {
     }
     private static void sameDay(Long chatId,String cibo,int peso){
         Ingredienti ingredienti = readRowFoodDB(cibo);
-        int calorie = ingredienti.calorie*100/peso;
-        int proteine = ingredienti.proteine*100/peso;
-        int carboidrati = ingredienti.carboidrati*100/peso;
-        int grassi = ingredienti.grassi*100/peso;
+        int calorie = ingredienti.calorie*(peso/100);
+        int proteine = ingredienti.proteine*(peso/100);
+        int carboidrati = ingredienti.carboidrati*(peso/100);
+        int grassi = ingredienti.grassi*(peso/100);
         Ingredienti macroDailyConsume = Database.readRow("DailyConsume",chatId);
         updateDailyConsume(
                 calorie+=macroDailyConsume.calorie,
                 proteine+=macroDailyConsume.proteine,
-                carboidrati+=macroDailyConsume.carboidrati,
                 grassi+=macroDailyConsume.grassi,
+                carboidrati+=macroDailyConsume.carboidrati,
                 chatId);
     }
     public static void deleteFood(Long chatId,String cibo,int peso){
         Ingredienti ingredienti = readRowFoodDB(cibo);
-        int calorie = ingredienti.calorie*100/peso;
-        int proteine = ingredienti.proteine*100/peso;
-        int carboidrati = ingredienti.carboidrati*100/peso;
-        int grassi = ingredienti.grassi*100/peso;
+        int calorie = ingredienti.calorie*(peso/100);
+        int proteine = ingredienti.proteine*(peso/100);
+        int carboidrati = ingredienti.carboidrati*(peso/100);
+        int grassi = ingredienti.grassi*(peso/100);
         Ingredienti macroDailyConsume = Database.readRow("DailyConsume",chatId);
         updateDailyConsume(
                 macroDailyConsume.calorie-=calorie,
-                macroDailyConsume.proteine-=proteine,
                 macroDailyConsume.carboidrati-=carboidrati,
+                macroDailyConsume.proteine-=proteine,
                 macroDailyConsume.grassi-=grassi,
                 chatId);
     }

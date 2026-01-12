@@ -12,6 +12,7 @@ import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
@@ -49,11 +50,33 @@ public class CALculator_Bot implements LongPollingSingleThreadUpdateConsumer {
         try{
             switch (UserStatus.valueOf(Database.checkStatus(update.getMessage().getChatId(),"status","status"))) {
                 case WAITING_MACRO -> handleSingleMacro(update);
+                case WAITING_FOOD -> handleWaitingFood(update);
+                case WAITING_DELETE -> handleWaitingDelete(update);
                 case NONE -> handleMessage(update);
             }
         }catch (Exception e){
             System.err.println("Errore in handleInput " +  e.getMessage());
         }
+    }
+
+    private void handleWaitingDelete(Update update) {
+        String[][] input = formatazzioneInput(update);
+        for (int i=0;i<input[0].length;i++) {
+            System.out.println(input[0][i]);
+            Ingredienti ing = Database.readRowFoodDB(input[0][i]);
+            if(ing!=null){
+                Database.deleteFood(update.getMessage().getChatId(),input[0][i],conversioneInt(input[1][i]));
+            }
+        }
+        Database.updateRow(update.getMessage().getChatId(),"status","status",UserStatus.NONE.name());
+        risposta(update,buildRisposta(update));
+    }
+    private void handleWaitingFood(Update update) {
+        if (Database.readRowFoodDB(update.getMessage().getText())==null){
+            Database.insertFoodDB(API.getMacro(update.getMessage().getText()),update.getMessage().getText());
+        }
+        risposta(update,buildRispostaFood(update));
+        Database.updateRow(update.getMessage().getChatId(),"status","status", UserStatus.NONE.name());
     }
 
     private void handleMessage(Update update) {
@@ -93,16 +116,16 @@ public class CALculator_Bot implements LongPollingSingleThreadUpdateConsumer {
         try {
             if (MacroStatus.valueOf(Database.checkStatus(update.getMessage().getChatId(), "macro_status", "preferenzeUtente"))==MacroStatus.SAVED) {
                 return "Valori nutrizionali di oggi:\n" +
-                        ing.calorie + "/" + ingPreferenzeUtente.calorie + "kcal\n" +
-                        ing.carboidrati + "/" + ingPreferenzeUtente.carboidrati+ "g\n" +
-                        ing.grassi + "/" + ingPreferenzeUtente.grassi + "g\n"+
-                        ing.proteine + "/" + ingPreferenzeUtente.proteine + "g";
+                        "Calorie: " + ing.calorie + "/" + ingPreferenzeUtente.calorie + "kcal\n" +
+                        "Carboidrati: " + ing.carboidrati + "/" + ingPreferenzeUtente.carboidrati+ "g\n" +
+                        "Grassi: " + ing.grassi + "/" + ingPreferenzeUtente.grassi + "g\n"+
+                        "Proteine: " + ing.proteine + "/" + ingPreferenzeUtente.proteine + "g";
             }else{
                 return "Valori nutrizionali:\n" +
-                        ing.calorie + "kcal\n" +
-                        ing.carboidrati + "g\n" +
-                        ing.grassi + "g\n"+
-                        ing.proteine + "g";
+                        "Calorie: " + ing.calorie + "kcal\n" +
+                        "Carboidrati: " + ing.carboidrati + "g\n" +
+                        "Grassi: " + ing.grassi + "g\n"+
+                        "Proteine: " + ing.proteine + "g";
             }
         }catch (Exception e){
             System.err.println("Errore in buildRisposta " +  e.getMessage());
@@ -131,8 +154,8 @@ public class CALculator_Bot implements LongPollingSingleThreadUpdateConsumer {
         String help ="/help - Mosta questo messaggio \n" +
                 "/macro - Imposta gli obbiettivi giornalieri che vuoi raggiungere \n" +
                 "/deletemacro - Elimina i tuoi obbiettivi nutrizionali\n" +
-                "/food \"nome cibo\" - Mostra i valori di un cibo per 100g\n" +
-                "/delete \"messaggio mandato\" - Elimina i macro dei cibi inseriti nei macro giornalieri \n" +
+                "/food - Mostra i valori di un cibo per 100g\n" +
+                "/delete - Elimina i macro dei cibi inseriti nei macro giornalieri \n" +
                 "/reset - Rimuove tutti i macro del giorno\n\n  " +
                 "Se si vuole iniziare a calcolare i macro di un giorno scrivere: \n" +
                 "\"*peso* *cibo*, *peso* *cibo*\" (il peso inserito in grammi)";
@@ -141,33 +164,27 @@ public class CALculator_Bot implements LongPollingSingleThreadUpdateConsumer {
 
     private void reset(Update update) {
         Database.resetDailyConsume(update.getMessage().getChatId());
+        risposta(update,"Rimuossi tutti i macro");
     }
     private void delete(Update update){
-        String[][] input = formatazzioneInput(update);
-        for (int i=0;i<input[0].length;i++) {
-            Ingredienti ing = Database.readRowFoodDB(input[0][i]);
-            if(ing!=null){
-                Database.deleteFood(update.getMessage().getChatId(),input[0][i],conversioneInt(input[1][i]));
-            }
-        }
-        risposta(update,buildRisposta(update));
+        Database.updateRow(update.getMessage().getChatId(),"status","status", UserStatus.WAITING_DELETE.name());
+        risposta(update,"Inserire i cibi da eliminare");
     }
 
     private void searchFood(Update update) {
-        String[] string = update.getMessage().getText().split(" ");
-        if(Database.readRowFoodDB(string[1]) == null){
-            handleMessageAPI(string[1]);
-        }
-        risposta(update,buildRispostaFood(update));
+        Database.updateRow(update.getMessage().getChatId(),"status","status", UserStatus.WAITING_FOOD.name());
+        risposta(update,"Di che cibo vorresti sapere i macro");
     }
     private String buildRispostaFood(Update update) {
-        String[] string = update.getMessage().getText().split(" ");
-        Ingredienti ing = Database.readRow("foodDB",string[1]);
-        return "Valori nutrizionali per 100g:\n" +
-                ing.calorie + "kcal\n" +
-                ing.carboidrati + "g\n" +
-                ing.grassi + "g\n"+
-                ing.proteine + "g";
+        Ingredienti ing = Database.readRowFoodDB(update.getMessage().getText());
+        if(ing!=null){
+            return "Valori nutrizionali per 100g:\n" +
+                    "Calorie: " + ing.calorie + "kcal\n" +
+                    "Carboidrati: " + ing.carboidrati + "g\n" +
+                    "Grassi: " + ing.grassi + "g\n"+
+                    "Proteine: " + ing.proteine + "g";
+        }
+        return "Errore";
     }
 
     private void deleteMacro(Update update) {
